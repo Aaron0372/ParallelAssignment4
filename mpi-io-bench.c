@@ -27,6 +27,13 @@ int main(int argc, char *argv[]){
     int blockSize = atoi(argv[1]);
     char size = argv[2][0];
     int multi = 0;
+    char filename[100] = "testfile";
+    if (argc == 5){
+      char* uid = argv[3];
+      char* job_id = argv[4];
+      snprintf(filename, 100, "/mnt/nvme/uid_%s/job_%s/testfile", uid, job_id);
+    }
+    
 
     if(size == 'K'){
         multi = 1024;
@@ -47,9 +54,12 @@ int main(int argc, char *argv[]){
     char* buf = (char *) malloc(bufsize);
     int nchars = bufsize/sizeof(char);
     MPI_Status status;
+    
 
     double start, end;
     if(myrank == 0){
+      printf("%s\n", filename);
+      printf("Running test with block size %s %s, with %d ranks ...\n", argv[1], argv[2], numranks);
       start = aimos_clock_read();
     }
 
@@ -57,7 +67,7 @@ int main(int argc, char *argv[]){
         buf[i] = '1';
     }
 
-    MPI_File_open(MPI_COMM_WORLD, "testfile", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
 
     for(int i = 0; i < 32; i++){
         MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
@@ -68,7 +78,6 @@ int main(int argc, char *argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
 
     if(myrank == 0){
-      printf("Running test with block size %s %s, with %d ranks ...\n", argv[1], argv[2], numranks);
       end = aimos_clock_read();
       double tmp = end-start;
       printf("Write time: %.5lf\n", tmp/512000000);
@@ -82,7 +91,7 @@ int main(int argc, char *argv[]){
     }
 
     buf = (char *) malloc(bufsize);
-    MPI_File_open(MPI_COMM_WORLD, "testfile", MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
+    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
     for(int i = 0; i < 32; i++){
         MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
         MPI_File_read_at(file, offset, buf, nchars, MPI_CHAR, &status);
