@@ -70,7 +70,7 @@ int main(int argc, char *argv[]){
     if(myrank == 0){
       end = aimos_clock_read();
       double tmp = end-start;
-      printf("Time: %.5lf\n", tmp);
+      printf("Time: %.5lf\n", tmp/512000000);
     }
 
     MPI_File_close(&file);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]){
     if(myrank == 0){
       end = aimos_clock_read();
       double tmp = end-start;
-      printf("Time: %.5lf\n", tmp);
+      printf("Time: %.5lf\n", tmp/512000000);
     }
 
     MPI_File_close(&file);
