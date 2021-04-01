@@ -43,10 +43,9 @@ int main(int argc, char *argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &numranks);
 
     int file_size = multi * blockSize * 32;
-    int bufsize = file_size/numranks;
-    char* buf = (char*) malloc(bufsize);
-    int nchar = bufsize/sizeof(char);
-    MPI_Offset offset = myrank*bufsize;
+    int bufsize = file_size/(numranks*32);
+    int* buf = (int *) malloc(bufsize);
+    int nints = bufsize/sizeof(int);
     MPI_Status status;
 
     double start, end;
@@ -60,15 +59,19 @@ int main(int argc, char *argv[]){
 
     MPI_File_open(MPI_COMM_WORLD, "testfile", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
 
-    MPI_File_write_at(file, offset, buf, nchar, MPI_CHAR, &status);
+    for(int i = 0; i < 32; i++){
+        MPI_Offset offset = i*multi*blockSize + (myrank*bufsize) + bufsize;
+        MPI_File_write_at(file, i*offset, buf, nints, MPI_INT, &status);
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
 
     MPI_Barrier(MPI_COMM_WORLD);
 
     if(myrank == 0){
       printf("Running test with block size %s %s, with %d ranks ...\n", argv[1], argv[2], numranks);
       end = aimos_clock_read();
-      double tmp = (end-start) / 512000000;
-      printf("Write time: %.5lf s\n", tmp);
+      double tmp = end-start;
+      printf("Time: %.5lf\n", tmp/512000000);
     }
 
     MPI_File_close(&file);
@@ -80,13 +83,17 @@ int main(int argc, char *argv[]){
 
     buf = (char *) malloc(bufsize);
     MPI_File_open(MPI_COMM_WORLD, "testfile", MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
-    MPI_File_read_at(file, offset, buf, nchar, MPI_CHAR, &status);
+    for(int i = 0; i < 32; i++){
+        MPI_Offset offset = i*multi*blockSize + (myrank*bufsize) + bufsize;
+        MPI_File_read_at(file, offset, buf, nints, MPI_INT, &status);
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
     MPI_Barrier(MPI_COMM_WORLD);
 
     if(myrank == 0){
       end = aimos_clock_read();
-      double tmp = (end-start) / 512000000;
-      printf("Read time: %.5lf s\n", tmp);
+      double tmp = end-start;
+      printf("Time: %.5lf\n", tmp/512000000);
     }
 
     MPI_File_close(&file);
