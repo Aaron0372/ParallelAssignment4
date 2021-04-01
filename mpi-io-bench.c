@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
       start = aimos_clock_read();
     }
 
-    for(int i = 0; i < nchar; i++){
+    for(int i = 0; i < nchars; i++){
         buf[i] = '1';
     }
 
