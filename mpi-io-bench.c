@@ -44,8 +44,8 @@ int main(int argc, char *argv[]){
 
     int file_size = multi * blockSize * 32;
     int bufsize = file_size/(numranks*32);
-    int* buf = (int *) malloc(bufsize);
-    int nints = bufsize/sizeof(int);
+    char* buf = (char *) malloc(bufsize);
+    int nchars = bufsize/sizeof(char);
     MPI_Status status;
 
     double start, end;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
 
     for(int i = 0; i < 32; i++){
         MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
-        MPI_File_write_at(file, offset, buf, nints, MPI_INT, &status);
+        MPI_File_write_at(file, offset, buf, nchars, MPI_CHAR, &status);
         MPI_Barrier(MPI_COMM_WORLD);
     }
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
       printf("Running test with block size %s %s, with %d ranks ...\n", argv[1], argv[2], numranks);
       end = aimos_clock_read();
       double tmp = end-start;
-      printf("Time: %.5lf\n", tmp/512000000);
+      printf("Write time: %.5lf\n", tmp/512000000);
     }
 
     MPI_File_close(&file);
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
     MPI_File_open(MPI_COMM_WORLD, "testfile", MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
     for(int i = 0; i < 32; i++){
         MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
-        MPI_File_read_at(file, offset, buf, nints, MPI_INT, &status);
+        MPI_File_read_at(file, offset, buf, nchars, MPI_CHAR, &status);
         MPI_Barrier(MPI_COMM_WORLD);
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]){
     if(myrank == 0){
       end = aimos_clock_read();
       double tmp = end-start;
-      printf("Time: %.5lf\n", tmp/512000000);
+      printf("Read time: %.5lf\n", tmp/512000000);
     }
 
     MPI_File_close(&file);
