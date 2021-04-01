@@ -60,8 +60,8 @@ int main(int argc, char *argv[]){
     MPI_File_open(MPI_COMM_WORLD, "testfile", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
 
     for(int i = 0; i < 32; i++){
-        MPI_Offset offset = i*multi*blockSize + (myrank*bufsize) + bufsize;
-        MPI_File_write_at(file, i*offset, buf, nints, MPI_INT, &status);
+        MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
+        MPI_File_write_at(file, offset, buf, nints, MPI_INT, &status);
         MPI_Barrier(MPI_COMM_WORLD);
     }
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
     buf = (char *) malloc(bufsize);
     MPI_File_open(MPI_COMM_WORLD, "testfile", MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
     for(int i = 0; i < 32; i++){
-        MPI_Offset offset = i*multi*blockSize + (myrank*bufsize) + bufsize;
+        MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
         MPI_File_read_at(file, offset, buf, nints, MPI_INT, &status);
         MPI_Barrier(MPI_COMM_WORLD);
     }
