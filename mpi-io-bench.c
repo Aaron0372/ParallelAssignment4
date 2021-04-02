@@ -43,7 +43,8 @@ int main(int argc, char *argv[]){
     }
 
     MPI_File file;
-    int myrank, numranks;
+    int myrank, numranks, color;
+    int stat;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
@@ -54,25 +55,48 @@ int main(int argc, char *argv[]){
     char* buf = (char *) malloc(bufsize);
     int nchars = bufsize/sizeof(char);
     MPI_Status status;
+    color = myrank / 32;
+
+    MPI_Comm row_comm;
+    stat = MPI_Comm_split(MPI_COMM_WORLD, color, myrank, &row_comm);
+    if (stat != 0){
+          printf("Rank %d: MPI_Comm_split error code %d\n", myrank, stat);
+        }
+    else{
+      //printf("World rank %d spited in to sub comm group color %d\n", myrank, color);
+    }
+
+
+    int row_rank, row_size;
+    MPI_Comm_rank(row_comm, &row_rank);
+    MPI_Comm_size(row_comm, &row_size);
     
 
     double start, end;
-    if(myrank == 0){
-      printf("%s\n", filename);
-      printf("Running test with block size %s %s, with %d ranks ...\n", argv[1], argv[2], numranks);
-      start = aimos_clock_read();
-    }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(myrank == 0){
+          printf("%s\n", filename);
+          printf("Running test with block size %s %s, with %d ranks ...\n", argv[1], argv[2], numranks);
+          start = aimos_clock_read();
+        }
+    // initialization buffer
     for(int i = 0; i < nchars; i++){
         buf[i] = '1';
     }
 
-    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+    stat = MPI_File_open(row_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+    if (stat != 0){
+          printf("Rank %d: MPI_File_open error code %d\n", myrank, stat);
+        }
 
     for(int i = 0; i < 32; i++){
         MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
-        MPI_File_write_at(file, offset, buf, nchars, MPI_CHAR, &status);
-        MPI_Barrier(MPI_COMM_WORLD);
+        stat = MPI_File_write_at(file, offset, buf, nchars, MPI_CHAR, &status);
+        if (stat != 0){
+          printf("Rank %d: MPI_File_write_at error code %d\n", myrank, stat);
+        }
+        //MPI_Barrier(MPI_COMM_WORLD);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -91,11 +115,18 @@ int main(int argc, char *argv[]){
     }
 
     buf = (char *) malloc(bufsize);
-    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
+    stat = MPI_File_open(row_comm, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
+    if (stat != 0){
+          printf("Rank %d: MPI_File_open error code %d\n", myrank, stat);
+        }
+      
     for(int i = 0; i < 32; i++){
         MPI_Offset offset = i*multi*blockSize + (myrank*bufsize);
-        MPI_File_read_at(file, offset, buf, nchars, MPI_CHAR, &status);
-        MPI_Barrier(MPI_COMM_WORLD);
+        stat = MPI_File_read_at(file, offset, buf, nchars, MPI_CHAR, &status);
+        if (stat != 0){
+          printf("Rank %d: MPI_File_read_at error code: %d\n", myrank, stat);
+        }
+        // MPI_Barrier(MPI_COMM_WORLD);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
