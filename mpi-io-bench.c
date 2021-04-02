@@ -55,7 +55,13 @@ int main(int argc, char *argv[]){
     char* buf = (char *) malloc(bufsize);
     int nchars = bufsize/sizeof(char);
     MPI_Status status;
-    color = myrank / 32;
+    if (argc == 5){
+      color = myrank / 32;
+    }
+    else{
+      color = 0;
+    }
+    
 
     MPI_Comm row_comm;
     stat = MPI_Comm_split(MPI_COMM_WORLD, color, myrank, &row_comm);
@@ -96,7 +102,7 @@ int main(int argc, char *argv[]){
         if (stat != 0){
           printf("Rank %d: MPI_File_write_at error code %d\n", myrank, stat);
         }
-        //MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -126,7 +132,7 @@ int main(int argc, char *argv[]){
         if (stat != 0){
           printf("Rank %d: MPI_File_read_at error code: %d\n", myrank, stat);
         }
-        // MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
