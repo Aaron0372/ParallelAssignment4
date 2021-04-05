@@ -1,0 +1,8 @@
+sbatch -N 1 --ntasks-per-node=2 --partition=dcs --gres=gpu:1,nvme -t 30 ./slurm_nvme.sh
+sbatch -N 1 --ntasks-per-node=4 --partition=dcs --gres=gpu:1,nvme -t 30 ./slurm_nvme.sh
+sbatch -N 1 --ntasks-per-node=8 --partition=dcs --gres=gpu:1,nvme -t 30 ./slurm_nvme.sh
+sbatch -N 1 --ntasks-per-node=16 --partition=dcs --gres=gpu:1,nvme -t 30 ./slurm_nvme.sh
+sbatch -N 1 --ntasks-per-node=32 --partition=dcs --gres=gpu:1,nvme -t 30 ./slurm_nvme.sh
+sbatch -N 2 --ntasks-per-node=32 --partition=dcs --gres=gpu:1,nvme -t 30 ./slurm_nvme.sh
+
+NOTE: each sbatch command will run tests for each file size, paths for saving output are specified in the script

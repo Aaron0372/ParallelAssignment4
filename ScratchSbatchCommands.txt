@@ -1,0 +1,8 @@
+sbatch -N 1 --ntasks-per-node=2 --partition=dcs --gres=gpu:1 -t 30 ./slurmSpectrum.sh
+sbatch -N 1 --ntasks-per-node=4 --partition=dcs --gres=gpu:1 -t 30 ./slurmSpectrum.sh
+sbatch -N 1 --ntasks-per-node=8 --partition=dcs --gres=gpu:1 -t 30 ./slurmSpectrum.sh
+sbatch -N 1 --ntasks-per-node=16 --partition=dcs --gres=gpu:1 -t 30 ./slurmSpectrum.sh
+sbatch -N 1 --ntasks-per-node=32 --partition=dcs --gres=gpu:1 -t 30 ./slurmSpectrum.sh
+sbatch -N 2 --ntasks-per-node=32 --partition=dcs --gres=gpu:1 -t 30 ./slurmSpectrum.sh
+
+NOTE: slurmSpectrum must have command line values changed for the block size ( mpirun -hostfile /tmp/hosts.$SLURM_JOB_ID -np $SLURM_NPROCS <path to compiled code> <integer size> <char multiplier (K or M)>
